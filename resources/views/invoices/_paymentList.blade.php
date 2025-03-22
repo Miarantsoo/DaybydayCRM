@@ -41,7 +41,6 @@
                     select.addClass("tablet__select");
                 },
                 columns: [
-
                     {data: 'payment_date', name: 'payment_date', searchable: false},
                     {data: 'payment_source', name: 'payment_source', searchable: false},
                     {data: 'amount', name: 'amount', searchable: false},
