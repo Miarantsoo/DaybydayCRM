@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Payment\PaymentRequest;
 use App\Models\Integration;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
+use App\Models\Offer;
 use App\Models\Payment;
 use App\Services\Invoice\GenerateInvoiceStatus;
 use Carbon\Carbon;
@@ -52,6 +54,11 @@ class PaymentsController extends Controller
         if (!$invoice->isSent()) {
             session()->flash('flash_message_warning', __("Can't add payment on Invoice"));
             return redirect()->route('invoices.show', $invoice->external_id);
+        }
+
+        if($request->amount > $request->amount_due) {
+            session()->flash('flash_message_warning', __("Le montant que vous payer ne dois pas dépasser le reste à payer"));
+            return redirect()->back();
         }
 
         $payment = Payment::create([
