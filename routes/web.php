@@ -227,9 +227,22 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/', 'AbsenceController@store')->name('absence.store');
         Route::delete('/{absence}', 'AbsenceController@destroy')->name('absence.destroy');
     });
+
+    Route::group(['prefix' => 'database' ], function (){
+        Route::get('/', 'DatabaseController@goToPage')->name('database.index');
+        Route::get('/clean', 'DatabaseController@cleanDatabase')->name('database.clean');
+        Route::get('/import', 'DatabaseController@goToImport')->name('database.importPage');
+        Route::post('/import', 'DatabaseController@import')->name('database.import');
+    });
+
 });
 
 Route::group(['middleware' => ['auth']], function () {
     Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
     Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');
+});
+
+
+Route::middleware(['cors'])->group(function () {
+    Route::post('/api/login', 'Auth\LoginController@apiLogin');
 });
