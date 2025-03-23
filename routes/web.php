@@ -246,4 +246,23 @@ Route::group(['middleware' => ['auth']], function () {
 Route::middleware(['cors'])->group(function () {
     Route::post('/api/login', 'Auth\LoginController@apiLogin');
     Route::post('/api/configuration', 'ConfigurationsController@setConfiguration');
+
+    // paiement
+    Route::get('/api/total-paiement', 'PaymentsController@totalPayments');
+    Route::get('/api/paginate-paiement', 'PaymentsController@paginatedListPayment');
+    Route::put('/api/update-paiement', 'PaymentsController@updatePayment');
+    Route::delete('/api/delete-paiement', 'PaymentsController@deletePayment');
+    Route::get('/api/data-payment-chart', 'PaymentsController@getPaymentLastDays');
+
+    // invoice
+    Route::get('/api/total-invoice', 'InvoicesController@totalInvoices');
+    Route::get('/api/paginate-invoice', 'InvoicesController@paginatedListInvoice');
+
+    // offer
+    Route::get('/api/total-offer', 'OffersController@totalOffers');
+    Route::get('/api/paginate-offer', 'OffersController@paginatedListOffer');
+    Route::get('/api/data-offer-chart', 'OffersController@dataChartOfferStatusPerYear');
+
+    // task
+    Route::get('/api/data-task-chart', 'TasksController@tasksStatusPerMonth');
 });

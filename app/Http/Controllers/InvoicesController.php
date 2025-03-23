@@ -128,6 +128,7 @@ class InvoicesController extends Controller
             $invoice->sendMail($request->subject, $request->message, $request->recipientMail, $attachPdf);
         }
 
+        // oh bebeh, application reduction
         if($request->remise != null) {
             $remise = Configuration::where('desce', 'remise')->first();
 
@@ -246,5 +247,21 @@ class InvoicesController extends Controller
         $invoices = Invoice::pastDueAt()->get();
         
         return view('invoices.overdue')->withInvoices($invoices);
+    }
+
+    public function totalInvoices(){
+        $payments = Invoice::all();
+        $total = count($payments);
+        return response()->json($total);
+    }
+
+    public function paginatedListInvoice(Request $request){
+        $payments = Invoice::paginate(10, ['*'], 'page', $request->page);
+
+        return response()->json([
+            'data' => $payments->items(),
+            'total_pages' => $payments->lastPage(),
+            'current_page' => $payments->currentPage()
+        ]);
     }
 }

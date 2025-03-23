@@ -346,4 +346,34 @@ class TasksController extends Controller
         Notifynder::readAll(\Auth::id());
         return redirect()->back();
     }
+
+    public function tasksStatusPerMonth()
+    {
+        $currentYear = Carbon::now()->year;
+        $currentMonth = Carbon::now()->month;
+
+        $statuses = Status::typeOfTask()->get();
+        $monthlyData = [];
+
+        foreach ($statuses as $status) {
+            $count = Task::whereYear('created_at', $currentYear)
+                ->whereMonth('created_at', $currentMonth)
+                ->where('status_id', $status->id)
+                ->count();
+
+            $monthlyData[] = [
+                'status' => $status->title,
+                'nbr' => $count,
+            ];
+        }
+
+        $totalTasks = Task::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+
+        return response()->json([
+            'data' => $monthlyData,
+            'total' => $totalTasks,
+        ]);
+    }
 }
