@@ -100,7 +100,7 @@
                 },
                 columns: [
                     {data: 'titlelink', name: 'title', class: 'title-table-tab'},
-                    {data: 'client', name: 'client', class: 'client-table-tab'},
+                    {data: 'client', name: 'client.id', class: 'client-table-tab'},
                     {data: 'deadline', name: 'deadline'},
                     {data: 'created_at', name: 'created_at'},
                     {data: 'user_assigned_id', name: 'user_assigned_id'},

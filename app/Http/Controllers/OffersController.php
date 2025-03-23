@@ -102,4 +102,42 @@ class OffersController extends Controller
 
         return redirect()->back();
     }
+
+    public function totalOffers(){
+        $payments = Offer::all();
+        $total = count($payments);
+        return response()->json($total);
+    }
+
+    public function paginatedListOffer(Request $request){
+        $payments = Offer::paginate(10, ['*'], 'page', $request->page);
+
+        return response()->json([
+            'data' => $payments->items(),
+            'total_pages' => $payments->lastPage(),
+            'current_page' => $payments->currentPage()
+        ]);
+    }
+
+    public function dataChartOfferStatusPerYear() {
+//        $year = $request->get('year', date('Y'));
+        $year = 2025;
+
+        $monthlyData = [];
+
+        for ($month = 1; $month <= 12; $month++) {
+            $totalOffers = Offer::whereYear('created_at', $year)->whereMonth('created_at', $month)->count();
+            $wonOffers = Offer::whereYear('created_at', $year)->whereMonth('created_at', $month)->where('status', OfferStatus::won()->getStatus())->count();
+            $lostOffers = Offer::whereYear('created_at', $year)->whereMonth('created_at', $month)->where('status', OfferStatus::lost()->getStatus())->count();
+
+            $monthlyData[] = [
+                'mois' => $month,
+                'totalOffre' => $totalOffers,
+                'totalGagnee' => $wonOffers,
+                'totalPerdue' => $lostOffers,
+            ];
+        }
+
+        return response()->json($monthlyData);
+    }
 }

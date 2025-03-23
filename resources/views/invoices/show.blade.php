@@ -215,6 +215,14 @@
                     'method' => 'post',
                     'route' => ['invoice.sent', $invoice->external_id],
                     ]) !!}
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="remise" id="remise">
+                            <label for="remise" class="form-check-label">Voulez-vous appliquer la remise de {{ $remise->val }}% ?</label>
+                        </div>
+                    </div>
+
                     @if($apiconnected)
                     <p>{{ __('We have found this contact from your billing integration, do you wish for us to create the invoice in your your billing system as well?, than please choose a contact below') }}</p>
                     <select name="invoiceContact"
