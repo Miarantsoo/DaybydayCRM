@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configuration;
 use View;
 use App\Billy;
 use Datatables;
@@ -81,11 +82,14 @@ class InvoicesController extends Controller
         $subPrice = $invoiceCalculator->getSubTotal();
         $vatPrice = $invoiceCalculator->getVatTotal();
         $amountDue = $invoiceCalculator->getAmountDue();
-        
+
+        $remise = Configuration::where('desce', 'remise')->first();
+
         return view('invoices.show')
             ->withInvoice($invoice)
             ->withApiconnected($apiConnected)
             ->withContacts($invoiceContacts)
+            ->withRemise($remise)
             ->withfinalPrice(app(MoneyConverter::class, ['money' => $totalPrice])->format())
             ->withsubPrice(app(MoneyConverter::class, ['money' => $subPrice])->format())
             ->withVatPrice(app(MoneyConverter::class, ['money' => $vatPrice])->format())
@@ -112,6 +116,7 @@ class InvoicesController extends Controller
         }
         /** @var Invoice $invoice */
         $invoice = $this->findByExternalId($external_id);
+
         if ($invoice->isSent()) {
             session()->flash('flash_message_warning', __('Invoice already sent'));
             return redirect()->route('invoices.show', $external_id);
@@ -121,6 +126,15 @@ class InvoicesController extends Controller
         if ($request->sendMail && $request->invoiceContact) {
             $attachPdf = $request->attachPdf ? true : false;
             $invoice->sendMail($request->subject, $request->message, $request->recipientMail, $attachPdf);
+        }
+
+        if($request->remise != null) {
+            $remise = Configuration::where('desce', 'remise')->first();
+
+            foreach ($invoice->invoiceLines as $line) {
+                $line->price = $line->price * (1 - $remise->val / 100);
+                $line->save();
+            }
         }
 
         $invoice->sent_at =  Carbon::now();
