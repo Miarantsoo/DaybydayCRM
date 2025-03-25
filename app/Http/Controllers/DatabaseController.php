@@ -33,7 +33,7 @@ class DatabaseController extends Controller
 
     public function goToImport() {
         $tables = $this->databaseService->getAllTables();
-        return view("database.import", ["tables" => $tables, "errorImport" => session('errorImport')]);
+        return view("database.import", ["tables" => $tables, "errorImport" => session('errorImport'), "warningImport" => session('warningImport')]);
     }
 
     public function import(Request $request) {
@@ -48,13 +48,14 @@ class DatabaseController extends Controller
             return redirect()->back()->withErrors($validator);
         }
 
-        $error = $this->databaseService->importDataToDB($request->file1, $request->file2, $request->file3);
+        [$error, $warning] = $this->databaseService->importDataToDB($request->file1, $request->file2, $request->file3);
         if(!$error) {
             Session()->flash('flash_message', __('Les données ont été importées avec succès'));
         } else {
             Session()->flash('flash_message_warning', __("Les données n'ont pas été importés"));
         }
 
+        if(count($warning) > 0) return redirect()->back()->with('warningImport', $warning);
         if(count($error) > 0) return redirect()->back()->with('errorImport', $error);
 
         return redirect()->back();

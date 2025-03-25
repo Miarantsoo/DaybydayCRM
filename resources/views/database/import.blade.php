@@ -68,6 +68,15 @@
         </div>
 
         @endif
+
+        @if(session()->has('warningImport'))
+        <div class="alert alert-warning">
+            @foreach(session('warningImport') as $error)
+            <p>{{ $error }}</p>
+            @endforeach
+        </div>
+
+        @endif
     </div>
 
 @stop

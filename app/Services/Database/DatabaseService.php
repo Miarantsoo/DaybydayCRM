@@ -64,6 +64,7 @@ class DatabaseService
     public function importDataToDB($file1, $file2, $file3): array
     {
         $errors = [];
+        $warnings = [];
 
         try {
             \DB::beginTransaction();
@@ -72,15 +73,30 @@ class DatabaseService
             $handle = fopen($file1, 'r');
             $header = fgetcsv($handle, 1000, ',');
             $lineNumber = 1;
+            $row1 = [];
 
             while (($data = fgetcsv($handle, 1000, ',')) !== false) {
                 $lineNumber++;
                 $row = array_combine($header, $data);
 
                 try {
+                    // doublon
+//                    $dataImploded = implode(",", $data);
+//                    if(in_array($dataImploded, $row1)) {
+//                        throw new \Exception("Doublon détecté");
+//                    }
+//                    $row1[] = $dataImploded;
+
                     // creation user
                     $userId = User::inRandomOrder()->value('id') ?? factory(User::class)->create()->id;
                     $industryId = Industry::inRandomOrder()->value('id') ?? factory(Industry::class)->create()->id;
+
+                    if($row["project_title"] == "") {
+                        throw new \Exception("Le titre du projet est nécessaire");
+                    }
+                    if($row["client"] == "") {
+                        throw new \Exception("Le nom du client est nécessaire");
+                    }
 
                     $client = Client::firstOrCreate(
                         ['company_name' => $row['client_name']],
@@ -122,8 +138,12 @@ class DatabaseService
                         'deadline' => Carbon::now()->addDays(7)
                     ]);
 
-                } catch (\Throwable $e) {
-                    $errors[] = sprintf("Ligne %d fichier 1: %s", $lineNumber, $e->getMessage());
+                } catch (\Exception $e) {
+                    if(str_contains($e->getMessage(), 'Doublon')) {
+                        $warnings[] = sprintf("Ligne %d fichier 1: %s", $lineNumber, $e->getMessage());
+                    } else {
+                        $errors[] = sprintf("Ligne %d fichier 1: %s", $lineNumber, $e->getMessage());
+                    }
                 }
             }
             fclose($handle);
@@ -136,14 +156,25 @@ class DatabaseService
             $allProjects = \DB::table('projects')->get();
             $projetIds = $this->getIdByParameter($allProjects, 'title');
 
+            $row2 = [];
+
             while (($data = fgetcsv($handle2, 1000, ',')) !== false) {
                 $lineNumber2++;
                 $row = array_combine($header2, $data);
 
                 try {
+                    // doublon
+//                    $dataImploded = implode(",", $data);
+//                    if(in_array($dataImploded, $row2)) {
+//                        throw new \Exception("Doublon détecté");
+//                    }
+//                    $row2[] = $dataImploded;
 
                     if($projetIds[$row["project_title"]] == null) {
                         throw new \Exception("le projet est inexistant");
+                    }
+                    if($row["task_title"] == "") {
+                        throw new \Exception("Le titre de la tâche est nécessaire");
                     }
 
                     $userAssignedId = User::inRandomOrder()->value('id');
@@ -163,7 +194,11 @@ class DatabaseService
                     ]);
 
                 } catch (\Exception $e) {
-                    $errors[] = sprintf("Ligne %d fichier 2: %s", $lineNumber2, $e->getMessage());
+                    if(str_contains($e->getMessage(), 'Doublon')) {
+                        $warnings[] = sprintf("Ligne %d fichier 2: %s", $lineNumber, $e->getMessage());
+                    } else {
+                        $errors[] = sprintf("Ligne %d fichier 2: %s", $lineNumber2, $e->getMessage());
+                    }
                 }
             }
 
@@ -177,14 +212,28 @@ class DatabaseService
             $clients = \DB::table('clients')->get();
             $clientIds = $this->getIdByParameter($clients, 'company_name');
 
+            $row3 = [];
+
             while (($data = fgetcsv($handle3, 1000, ',')) !== false) {
                 $lineNumber3++;
                 $row = array_combine($header3, $data);
 
                 try {
+                    // doublon
+//                    $dataImploded = implode(",", $data);
+//                    if(in_array($dataImploded, $row3)) {
+//                        throw new \Exception("Doublon détecté");
+//                    }
+//                    $row3[] = $dataImploded;
 
-                    if($clientIds[$row["client_name"]] == null) {
+                    if($row['client_name'] == "" || $clientIds[$row["client_name"]] == null) {
                         throw new \Exception("le client est inexistant");
+                    }
+                    if($row['prix'] < 0) {
+                        throw new \Exception("Le prix ne doit pas être négatif");
+                    }
+                    if($row['quantite'] < 0) {
+                        throw new \Exception("La quantité ne doit pas être négatif");
                     }
 
                     $userAssignedId = User::inRandomOrder()->value('id');
@@ -259,12 +308,20 @@ class DatabaseService
 
                     }
 
-                } catch (\Throwable $e) {
-                    $errors[] = sprintf("Ligne %d fichier 3: %s", $lineNumber3, $e->getMessage());
+                } catch (\Exception $e) {
+                    if(str_contains($e->getMessage(), 'Doublon')) {
+                        $warnings[] = sprintf("Ligne %d fichier 3: %s", $lineNumber, $e->getMessage());
+                    } else {
+                        $errors[] = sprintf("Ligne %d fichier 3: %s", $lineNumber3, $e->getMessage());
+                    }
                 }
             }
 
             fclose($handle3);
+
+//            if(!empty($warnings)){
+//                \DB::rollback();
+//            }
 
             if (empty($errors)) {
                 \DB::commit();
@@ -280,7 +337,7 @@ class DatabaseService
             info("Import system failure: ".$e->getMessage());
         }
 
-        return $errors;
+        return [$errors, $warnings];
     }
 
 }
