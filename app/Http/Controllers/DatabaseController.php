@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\database\ImportDataRequest;
-use App\Http\Requests\Request;
 use App\Services\Database\DatabaseService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class DatabaseController extends Controller
 {
@@ -35,18 +36,23 @@ class DatabaseController extends Controller
         return view("database.import", ["tables" => $tables, "errorImport" => session('errorImport')]);
     }
 
-    public function import($external_id, Request $request) {
-        $user = $this->findByExternalId($external_id);
+    public function import(Request $request) {
+        $validator = Validator::make($request->all(), [
+           'file1' => 'required|file|mimes:csv,txt',
+           'file2' => 'required|file|mimes:csv,txt',
+           'file3' => 'required|file|mimes:csv,txt'
+        ]);
 
-        if( !auth()->user()->canChangePasswordOn($user) ) {
-            unset($request['password']);
+        if($validator->fails()) {
+            Session()->flash('flash_message_warning', __('Un des fichiers n\'a été importé'));
+            return redirect()->back()->withErrors($validator);
         }
 
-        if($request->hasFile('file')) {
-            $error = $this->databaseService->importIndustry($request->file);
+        $error = $this->databaseService->importDataToDB($request->file1, $request->file2, $request->file3);
+        if(!$error) {
             Session()->flash('flash_message', __('Les données ont été importées avec succès'));
         } else {
-            Session()->flash('flash_message_warning', __('Aucun fichier n\'a été importé'));
+            Session()->flash('flash_message_warning', __("Les données n'ont pas été importés"));
         }
 
         if(count($error) > 0) return redirect()->back()->with('errorImport', $error);

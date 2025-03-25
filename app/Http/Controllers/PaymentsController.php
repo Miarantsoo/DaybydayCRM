@@ -57,7 +57,7 @@ class PaymentsController extends Controller
             return redirect()->route('invoices.show', $invoice->external_id);
         }
 
-        if($request->amount > (float) explode(" ", $request->amount_due)[0]) {
+        if($request->amount > $request->amount_due) {
             session()->flash('flash_message_warning', __("Le montant que vous payer ne dois pas dépasser le reste à payer"));
             return redirect()->back();
         }

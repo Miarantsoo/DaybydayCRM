@@ -6,7 +6,7 @@
 
 </div>
 <form action="{{route('payment.add', [$invoice->external_id])}}" method="POST">
-    <input type="hidden" name="amount_due" value="{{ $amountDueFormatted }}">
+    <input type="hidden" name="amount_due" value="{{ $amountDue->getBigDecimalAmount() }}">
 <div class="modal-body">
     <div class="row">
         <div class="col-lg-12">
