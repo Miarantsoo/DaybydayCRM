@@ -36,4 +36,20 @@ class LoginController extends Controller
     {
         $this->middleware('guest', ['except' => 'logout']);
     }
+
+    public function apiLogin(Request $request)
+    {
+        $this->validate($request, [
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        if ($this->attemptLogin($request)) {
+            $user = $this->guard()->user();
+
+            return response()->json($user);
+        }
+
+        return response()->json(['error' => 'Email ou mot de passe invalide']);
+    }
 }
