@@ -32,7 +32,7 @@ class DatabaseController extends Controller
 
     public function goToImport() {
         $tables = $this->databaseService->getAllTables();
-        return view("database.import", ["tables" => $tables]);
+        return view("database.import", ["tables" => $tables, "errorImport" => session('errorImport')]);
     }
 
     public function import($external_id, Request $request) {
@@ -43,13 +43,15 @@ class DatabaseController extends Controller
         }
 
         if($request->hasFile('file')) {
-            $this->databaseService->importIndustry($request->file);
+            $error = $this->databaseService->importIndustry($request->file);
             Session()->flash('flash_message', __('Les données ont été importées avec succès'));
         } else {
             Session()->flash('flash_message_warning', __('Aucun fichier n\'a été importé'));
         }
 
-        return redirect()->route('database.importPage');
+        if(count($error) > 0) return redirect()->back()->with('errorImport', $error);
+
+        return redirect()->back();
     }
 
 }
