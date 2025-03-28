@@ -1,0 +1,11 @@
+client
+5;b71bc8cc-55aa-3e7d-b575-0559c3747260;"98096 Bogisich Circle Apt. 760 Lake Davionchester, MA 99249";26685-5332;"New Geovannishire";"Brown Group copy";;ApS;;25;23;;2025-03-27T05:35:43.000000Z;2025-03-27T05:35:43.000000Z
+projet
+5;e77e3989-de44-3574-890f-fdb194367350;"Project 5";"Quia nostrum illo enim. Dolor autem voluptates delectus nobis porro. Optio aut fugit ut. Fugit et odio deserunt saepe rerum. Blanditiis non et sint atque iste molestiae. Minima aliquam consequatur repellendus autem. Ab animi magni ipsam occaecati ducimus. Accusamus perspiciatis molestiae architecto voluptatem necessitatibus enim dolor. Velit quia consequatur perspiciatis sed ut soluta.";11;50;24;5;;2025-04-03T00:00:00.000000Z;;2025-03-27T05:35:43.000000Z;2025-03-27T05:35:43.000000Z
+invoice
+13;f9873e27-32e1-3368-b2f3-744a9c01ea82;draft;;;2025-04-06T05:35:45.000000Z;;;"App\Models\Lead";26;5;;;2025-03-27T05:35:45.000000Z;2025-03-27T05:35:45.000000Z
+26;aa97b2ef-1233-3acb-b9b3-24a7c1300168;Casquette;;14005;13;;pieces;10;10;2025-03-27T05:35:45.000000Z;2025-03-27T05:35:45.000000Z;
+35;5b41bc35-ed64-34d0-8ade-3ba1562ab00d;draft;;;2025-04-06T05:35:46.000000Z;;;"App\Models\Lead";65;5;;;2025-03-27T05:35:46.000000Z;2025-03-27T05:35:46.000000Z
+65;deb3294b-f3ce-3a04-bf46-6846f1ad0449;Mug;;31293;35;;pieces;17;2;2025-03-27T05:35:46.000000Z;2025-03-27T05:35:46.000000Z;
+53;7306165e-2ea7-3f51-bd46-b847e4888427;draft;;;2025-04-06T05:35:47.000000Z;;;"App\Models\Lead";96;5;;;2025-03-27T05:35:47.000000Z;2025-03-27T05:35:47.000000Z
+96;5e8c6f65-73e2-3079-95d1-acc24ad290d6;Gourde;;27584;53;;pieces;10;6;2025-03-27T05:35:47.000000Z;2025-03-27T05:35:47.000000Z;

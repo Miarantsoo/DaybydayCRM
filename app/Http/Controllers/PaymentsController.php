@@ -139,7 +139,7 @@ class PaymentsController extends Controller
     public function getPaymentLastDays(){
         $days = 14;
         $dateRange = [];
-        $currentDate = Carbon::now();
+        $currentDate = Carbon::now()->addDays(1);
         $depart = Carbon::now()->subDays($days);
 
         while ($currentDate >= $depart) {
@@ -149,9 +149,10 @@ class PaymentsController extends Controller
 
         $results = DB::table(DB::raw("(SELECT '".implode("' AS date UNION SELECT '", $dateRange)."') AS dates"))
             ->leftJoin('payments', function($join) {
-                $join->on(DB::raw('dates.date'), '=', DB::raw('DATE(payments.created_at)'))
-                    ->where('payments.created_at', '>=', '2025-03-07');
+                $join->on(DB::raw('dates.date'), '=', DB::raw('DATE(payments.payment_date)'))
+                    ->where('payments.payment_date', '>=', '2025-03-13');
             })
+            ->where('deleted_at', null)
             ->select(DB::raw('dates.date AS creation'), DB::raw('COUNT(payments.id) AS count'))
             ->groupBy('dates.date')
             ->orderBy('dates.date')

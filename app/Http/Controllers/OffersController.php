@@ -140,4 +140,22 @@ class OffersController extends Controller
 
         return response()->json($monthlyData);
     }
+
+
+    // dupliquer client -> projet + invoice
+
+    public function getTotalPrix() {
+        $total = \DB::select("select sum(price * quantity) as total from invoice_lines where invoice_id is null")[0]->total/100;
+        return response()->json($total);
+    }
+
+    public function getAllInvoiceLines(Request  $request) {
+        $payments = InvoiceLine::where('invoice_id', null)->paginate(20, ['*'], 'page', $request->page);
+
+        return response()->json([
+            'data' => $payments->items(),
+            'total_pages' => $payments->lastPage(),
+            'current_page' => $payments->currentPage()
+        ]);
+    }
 }

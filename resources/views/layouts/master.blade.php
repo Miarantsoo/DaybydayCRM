@@ -230,6 +230,7 @@
 <script type="text/javascript" src="{{ URL::asset('js/jquery-ui-sortable.min.js') }}"></script>
 <script type="text/javascript" src="{{ URL::asset('js/bootstrap-tour-standalone.min.js') }}"></script>
 <script type="text/javascript" src="{{ URL::asset('js/picker.js') }}"></script>
+<script type="text/javascript" src="{{ URL::asset('js/html2pdf.bundle.min.js') }}"></script>
 
 @if(App::getLocale() == "dk")
 <script>

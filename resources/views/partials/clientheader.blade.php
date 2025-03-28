@@ -12,9 +12,17 @@
 
             </p>
             <!--Client info leftside-->
-            <div class="contactleft">
+            <div class="contactleft" id="my-id-beh">
                 <p class="client-name-text"  aria-hidden="true" data-toggle="tooltip"
                    title="{{ __('Contact person name') }}" data-placement="left"> {{$contact_info->name}}</p>
+                <div class="mt-2 ml-4">
+                    <form action="{{route('clients.export')}}" method="post">
+                        @csrf
+                        <input type="hidden" name="external_id" value="{{$client->external_id}}">
+                        <button type="submit" class="btn btn-info">Dupliquer le client</button>
+                    </form>
+                </div>
+<!--                <button onclick="exportPdf()">Export</button>-->
             @if($contact_info->email != "")
                 <!--MAIL-->
                     <p class="contact-paragraph">
@@ -73,3 +81,20 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    function exportPdf() {
+        const element = document.querySelector('#my-id-beh');
+        const options = {
+            margin:       1,
+            filename:     'exported.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(options).from(element).save();
+    }
+
+</script>
+@endpush

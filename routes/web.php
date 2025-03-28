@@ -56,6 +56,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/upload/{external_id}', 'DocumentsController@upload')->name('document.upload');
         Route::patch('/updateassign/{external_id}', 'ClientsController@updateAssign');
         Route::post('/updateassign/{external_id}', 'ClientsController@updateAssign');
+        Route::post('/export', 'ClientsController@duplicateClientToFile')->name('clients.export');
     });
     Route::resource('clients', 'ClientsController');
     Route::get('document/{external_id}', 'DocumentsController@view')->name('document.view');
@@ -258,11 +259,20 @@ Route::middleware(['cors'])->group(function () {
     Route::get('/api/total-invoice', 'InvoicesController@totalInvoices');
     Route::get('/api/paginate-invoice', 'InvoicesController@paginatedListInvoice');
 
+    // invoice lines
+    Route::get('/api/total-prix-invoice', 'InvoiceLinesController@getTotalPrix');
+    Route::get('/api/paginate-invoice-lines', 'InvoiceLinesController@getAllInvoiceLines');
+
     // offer
     Route::get('/api/total-offer', 'OffersController@totalOffers');
     Route::get('/api/paginate-offer', 'OffersController@paginatedListOffer');
     Route::get('/api/data-offer-chart', 'OffersController@dataChartOfferStatusPerYear');
+    Route::get('/api/total-prix-offer', 'OffersController@getTotalPrix');
+    Route::get('/api/paginate-offer-lines', 'OffersController@getAllInvoiceLines');
 
     // task
     Route::get('/api/data-task-chart', 'TasksController@tasksStatusPerMonth');
+
+    // client
+    Route::post('/api/import-client-duplication', 'ClientsController@importClient');
 });

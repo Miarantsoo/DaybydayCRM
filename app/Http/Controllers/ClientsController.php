@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Enums\Country;
 use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
+use App\Models\Project;
 use App\Models\Status;
 use App\Models\Task;
 use App\Repositories\FilesystemIntegration\FilesystemIntegration;
@@ -27,6 +29,7 @@ use App\Models\Integration;
 use App\Models\Industry;
 use Ramsey\Uuid\Uuid;
 use App\Models\Contact;
+use Faker\Generator as Faker;
 
 class ClientsController extends Controller
 {
@@ -36,16 +39,18 @@ class ClientsController extends Controller
     protected $users;
     protected $clients;
     protected $settings;
+    protected $faker;
     /**
      * @var FilesystemIntegration
      */
     private $filesystem;
 
-    public function __construct()
+    public function __construct(Faker $faker)
     {
         $this->middleware('client.create', ['only' => ['create']]);
         $this->middleware('client.update', ['only' => ['edit']]);
         $this->middleware('is.demo', ['only' => ['destroy']]);
+        $this->faker = $faker;
     }
 
     /**
@@ -161,6 +166,116 @@ class ClientsController extends Controller
             })
             ->rawColumns(['titlelink','status_id'])
             ->make(true);
+    }
+
+    // export
+    public function duplicateClientToFile(Request $request) {
+        $client = Client::where('external_id', $request->external_id)->firstOrFail()->toArray();
+        $client['company_name'] = $client['company_name']." copy";
+        $client['address'] = str_replace("\n", " ", $client['address']);
+
+        $projects = Project::where('client_id', $client['id'])->get();
+        $invoice = Invoice::where('client_id', $client['id'])->get();
+
+        $csvFileName = 'export.csv';
+        $csvFile = fopen($csvFileName, 'w');
+//        $headers = array_keys((array) $data[0]); // Get the column headers from the first row
+
+        fputcsv($csvFile, ["client"], ";");
+        fputcsv($csvFile, $client, ";");
+
+        fputcsv($csvFile, ["projet"]);
+        foreach ($projects as $row) {
+            fputcsv($csvFile, $row->toArray(), ";");
+        }
+
+        fputcsv($csvFile, ["invoice"]);
+        foreach ($invoice as $row) {
+            fputcsv($csvFile, $row->toArray(), ";");
+
+            foreach ($row->invoiceLines as $line) {
+                fputcsv($csvFile, $line->toArray(), ";");
+            }
+        }
+
+        fclose($csvFile);
+//        download($csvFile, $csvFileName, $header);
+//        Session()->flash('flash_message', __('Duplication terminée avec succès'));
+        return response()->download(public_path($csvFileName));
+    }
+
+    public function importClient(Request $request) {
+
+        $strClient = $request->client;
+        $arrayClient = explode(";", $strClient);
+
+        $client = new Client();
+        $client->external_id = $this->faker->uuid;
+        $client->company_name = str_replace("\"", "", $arrayClient[5]);
+        $client->address = str_replace("\"", "", $arrayClient[2]);
+        $client->zipcode = $arrayClient[3];
+        $client->city = $arrayClient[4];
+        $client->industry_id = $arrayClient[10];
+        $client->company_type = $arrayClient[6];
+        $client->user_id = $arrayClient[9];
+        $client->save();
+
+        $contact = Contact::Create(
+            [
+                'client_id' => $client->id,
+                'external_id' => $this->faker->uuid,
+                'name' => $client->company_name,
+                'email' => $this->faker->email,
+                'primary_number' => $this->faker->randomNumber(8),
+                'secondary_number' => $this->faker->randomNumber(8),
+                'is_primary' => 1,
+            ]
+        );
+
+        $listStrProject = $request->project;
+        $listStrInvoice = $request->invoice;
+        $listStrInvoiceLine = $request->invoiceLine;
+
+        foreach($listStrProject as $strProject) {
+            $arrayProject = explode(";", $strProject);
+            $project = new Project();
+            $project->external_id = $this->faker->uuid;
+            $project->title = $arrayProject[2];
+            $project->description = $arrayProject[3];
+            $project->status_id = $arrayProject[4];
+            $project->user_created_id = $arrayProject[5];
+            $project->user_assigned_id = $arrayProject[6];
+            $project->client_id = $client->id;
+            $project->deadline = $arrayProject[9];
+            $project->save();
+        }
+
+        for ($i=0; $i<count($listStrInvoice); $i++){
+            $arrayInvoice = explode(";", $listStrInvoice[$i]);
+            $arrayInvoiceLine = explode(";", $listStrInvoiceLine[$i]);
+
+            $invoice = new Invoice();
+            $invoice->external_id = $this->faker->uuid;
+            $invoice->status = $arrayInvoice[2];
+            $invoice->due_at = $arrayInvoice[5];
+//            $invoice->source_type = $arrayInvoice[8];
+//            $invoice->source_id = $arrayInvoice[9];
+            $invoice->client_id = $client->id;
+            $invoice->save();
+
+            $invoiceLine = new InvoiceLine();
+            $invoiceLine->external_id = $this->faker->uuid;
+            $invoiceLine->title = $arrayInvoiceLine[2];
+            $invoiceLine->price = $arrayInvoiceLine[4];
+            $invoiceLine->invoice_id = $invoice->id;
+            $invoiceLine->type = $arrayInvoiceLine[7];
+            $invoiceLine->quantity = $arrayInvoiceLine[8];
+            $invoiceLine->product_id = $arrayInvoiceLine[9];
+            $invoiceLine->save();
+
+        }
+
+        return response()->json('Fichier importe avec succes');
     }
 
     public function invoiceDataTable($external_id)

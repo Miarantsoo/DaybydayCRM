@@ -94,7 +94,7 @@ class DatabaseService
                     if($row["project_title"] == "") {
                         throw new \Exception("Le titre du projet est nécessaire");
                     }
-                    if($row["client"] == "") {
+                    if($row["client_name"] == "") {
                         throw new \Exception("Le nom du client est nécessaire");
                     }
 
@@ -170,6 +170,7 @@ class DatabaseService
 //                    }
 //                    $row2[] = $dataImploded;
 
+                    // fafana condition raha tsy mverifier hoe tsy maintsy misy ve le projet , si vide -> null
                     if($projetIds[$row["project_title"]] == null) {
                         throw new \Exception("le projet est inexistant");
                     }
@@ -229,11 +230,23 @@ class DatabaseService
                     if($row['client_name'] == "" || $clientIds[$row["client_name"]] == null) {
                         throw new \Exception("le client est inexistant");
                     }
+                    if(!is_numeric($row['prix'])) {
+                        throw new \Exception("Le prix doit être un nombre");
+                    }
+                    if(!is_numeric($row['quantite'])) {
+                        throw new \Exception("La quantité doit être un nombre");
+                    }
                     if($row['prix'] < 0) {
                         throw new \Exception("Le prix ne doit pas être négatif");
                     }
                     if($row['quantite'] < 0) {
                         throw new \Exception("La quantité ne doit pas être négatif");
+                    }
+                    if($row['prix'] == 0) {
+                        throw new \Exception("Le prix ne doit pas être égal à 0");
+                    }
+                    if($row['quantite'] == 0) {
+                        throw new \Exception("La quantité ne doit pas être égal à 0");
                     }
 
                     $userAssignedId = User::inRandomOrder()->value('id');
@@ -264,26 +277,6 @@ class DatabaseService
                         ]
                     );
 
-                    $offer = Offer::create([
-                        'status' => $row['type'] == 'invoice' ? OfferStatus::won()->getStatus() : OfferStatus::inProgress()->getStatus(),
-//                        'sent_at' => Carbon::now(),
-//                        'due_at' => Carbon::now()->addDays(7),
-                        'client_id' => $clientIds[$row['client_name']],
-                        'source_id' => $lead->id,
-                        'source_type' => 'App\Models\Lead',
-                        'external_id' => $this->faker->uuid
-                    ]);
-
-                    $invoice_line1 = InvoiceLine::create([
-                        'external_id' => $this->faker->uuid,
-                        'type' => $produit->default_type,
-                        'quantity' => $row['quantite'],
-                        'title' => $produit->name,
-                        'price' => $row['prix'],
-                        'product_id' => $produit->id,
-                        'offer_id' => $offer->id,
-                    ]);
-
                     if($row['type'] == 'invoice') {
                         $invoice = Invoice::create([
                             'status' => InvoiceStatus::draft()->getStatus(),
@@ -293,7 +286,7 @@ class DatabaseService
                             'source_id' => $lead->id,
                             'source_type' => 'App\Models\Lead',
                             'external_id' => $this->faker->uuid,
-                            'offer_id' => $offer->id,
+//                            'offer_id' => $offer->id,
                         ]);
 
                         $invoice_line2 = InvoiceLine::create([
@@ -306,6 +299,26 @@ class DatabaseService
                             'invoice_id' => $invoice->id,
                         ]);
 
+                    } else {
+                        $offer = Offer::create([
+                            'status' => $row['type'] == 'invoice' ? OfferStatus::won()->getStatus() : OfferStatus::inProgress()->getStatus(),
+//                        'sent_at' => Carbon::now(),
+//                        'due_at' => Carbon::now()->addDays(7),
+                            'client_id' => $clientIds[$row['client_name']],
+                            'source_id' => $lead->id,
+                            'source_type' => 'App\Models\Lead',
+                            'external_id' => $this->faker->uuid
+                        ]);
+
+                        $invoice_line1 = InvoiceLine::create([
+                            'external_id' => $this->faker->uuid,
+                            'type' => $produit->default_type,
+                            'quantity' => $row['quantite'],
+                            'title' => $produit->name,
+                            'price' => $row['prix'],
+                            'product_id' => $produit->id,
+                            'offer_id' => $offer->id,
+                        ]);
                     }
 
                 } catch (\Exception $e) {
@@ -340,4 +353,5 @@ class DatabaseService
         return [$errors, $warnings];
     }
 
+    // si ca change en ce que j'ai dit, offer et invoice se transforme en firstOrCreate
 }

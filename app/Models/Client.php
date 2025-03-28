@@ -34,7 +34,8 @@ class Client extends Model
         'industry_id',
         'company_type',
         'user_id',
-        'client_number'];
+        'client_number'
+    ];
 
     public static function boot()
     {
